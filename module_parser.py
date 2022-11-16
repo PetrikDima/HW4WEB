@@ -1,5 +1,6 @@
-import sys
 from pathlib import Path
+from folder_sorter import sorting
+
 
 JPEG_IMAGES = []
 JPG_IMAGES = []
@@ -55,7 +56,7 @@ def get_ext(filename):
     return Path(filename).suffix[1:].upper()
 
 
-def scan(folder):
+def scan(folder: Path):
     for elem in folder.iterdir():
         if elem.is_dir():
             if elem.name not in ('archives', 'video', 'audio', 'documents', 'images', 'MY_OTHER'):
@@ -74,35 +75,4 @@ def scan(folder):
             except KeyError:
                 UNKNOWN.add(ext)
                 MY_OTHER.append(fullname)
-
-
-if __name__ == '__main__':
-
-    folder_for_scan = sys.argv[1]
-    print(f'Start in folder {folder_for_scan}')
-
-    scan(Path(folder_for_scan))
-    print(f'Images jpeg: {JPEG_IMAGES}')
-    print(f'Images jpg: {JPG_IMAGES}')
-    print(f'Images svg: {SVG_IMAGES}')
-    print(f'Images png: {PNG_IMAGES}')
-    print(f'Audio mp3: {MP3_AUDIO}')
-    print(f'Audio ogg: {OGG_AUDIO}')
-    print(f'Audio wav: {WAV_AUDIO}')
-    print(f'Audio amr: {AMR_AUDIO}')
-    print(f'Video avi: {AVI_VIDEO}')
-    print(f'Video mp4: {MP4_VIDEO}')
-    print(f'Video mov: {MOV_VIDEO}')
-    print(f'Video mkv: {MKV_VIDEO}')
-    print(f'Documents doc: {DOC_DOCUMENTS}')
-    print(f'Documents docx: {DOCX_DOCUMENTS}')
-    print(f'Documents txt: {TXT_DOCUMENTS}')
-    print(f'Documents pdf: {PDF_DOCUMENTS}')
-    print(f'Documents xlsx: {XLSX_DOCUMENTS}')
-    print(f'Documents pptx: {PPTX_DOCUMENTS}')
-    print(f'Archives: {ARCHIVES}')
-
-    print(f'Types of files in folder: {EXTENSIONS}')
-    print(f'Unknown files of types: {UNKNOWN}')
-
-    print(FOLDERS[::-1])
+    return sorting(folder)

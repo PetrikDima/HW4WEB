@@ -1,9 +1,10 @@
-from pathlib import Path
+import logging
 import sys
+from pathlib import Path
 import shutil
 from module_normalize import normalize
 import module_parser as parser
-from threading import Thread
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
 def handle_media(filename, target_folder):
@@ -25,7 +26,7 @@ def handle_archive(filename, target_folder):
         shutil.unpack_archive(str(filename.resolve()),
                               str(folder_for_file.resolve()))
     except shutil.ReadError:
-        print(f'Це не архів {filename}!')
+        logging.error(f'Це не архів {filename}!')
         folder_for_file.rmdir()
         return None
     filename.unlink()
@@ -35,11 +36,10 @@ def handle_folder(folder):
     try:
         folder.rmdir()
     except OSError:
-        print(f'Помилка видалення папки {folder}')
+        logging.error(f'Помилка видалення папки {folder}')
 
 
-def main(folder):
-    parser.scan(folder)
+def sorting(folder):
     for file in parser.JPEG_IMAGES:
         handle_media(file, folder / 'images' / 'JPEG')
     for file in parser.JPG_IMAGES:
@@ -86,9 +86,18 @@ def main(folder):
         handle_folder(folder)
 
 
-if __name__ == '__main__':
-    if sys.argv[1]:
-        folder_for_scan = Path(sys.argv[1])
-        print(f'Start in folder {folder_for_scan.resolve()}')
-        main(folder_for_scan.resolve())
+def main(folder: Path):
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = [executor.submit(parser.scan, folder)]
 
+        for _ in as_completed(futures):
+            pass
+
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.ERROR)
+    if sys.argv[1]:
+        folder_for_scan = Path(sys.argv[1]).resolve()
+        logging.error(f'Start in folder {folder_for_scan}')
+        main(folder_for_scan.resolve())
+        logging.error(f'Successful in {folder_for_scan}')
